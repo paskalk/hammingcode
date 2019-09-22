@@ -30,8 +30,7 @@ function encodeBits(bigbinary){
 
 function generate10milBits(){
     let tenMillionBits ='';
-    for (let index = 0; index < 1000000; index++) {
-        //const element = array[index];
+    for (let index = 0; index < 10000000; index++) {
 
         //tenMillionBits = tenMillionBits +  randomIntInc(0,1);
         tenMillionBits = tenMillionBits.concat(randomIntInc(0,1));
@@ -54,9 +53,11 @@ function hammingStart(){
 
 var enc = hammingCode.encode(bits);
 
-    fs.writeFile('code.txt', 'bits', function (err) {
+    fs.writeFile('code.txt', enc, function (err) {
         if (err) throw err;
         console.log('Saved!');
       });
 }
+
+
 hammingStart(); 
