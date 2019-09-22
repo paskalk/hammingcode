@@ -1,0 +1,16 @@
+{
+  "name": "hammingjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "hamming.js",
+  "dependencies": {
+    "hamming-code": "^0.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
