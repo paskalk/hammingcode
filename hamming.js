@@ -9,55 +9,95 @@ var fs = require('fs');
 // console.log("Decode 0001111: ", hammingCode.decode("0001111"));
 // console.log("Pure Decode (without correcting) 0001111: ", hammingCode.pureDecode("0001111"));
 
+const errorProbability = 0.1;
+const errorDecimalPlaces = 1;
 
-function encodeBits(bigbinary){
+function encodeOrDecode(bigbinary,noOfBits,correctError){
     //Split string in groups of 4 an, return goups of 7 then concatenate
-    //let stringPos = 1;
-    //console.log(bigbinary.length +1);
-    let encodedString = 0;
+    
+    var encodedString = '';
     let count = 0;
-    for (let index = 0; index < (bigbinary.length + 1)/4; index++) {
+    let erroneousTransferCount = 0;
+    for (let index = 0; index < (bigbinary.length)/noOfBits; index++) {
         
-        let currentEncodedBit = bigbinary.substr(count, 4);//encode("1111");
+        let currentEncodedBit = bigbinary.substr(count, noOfBits);//encode("1111");
         
-        encodedString = encodedString + hammingCode.encode(currentEncodedBit);
+        if(noOfBits == 4){
+            encodedString = encodedString + hammingCode.encode(currentEncodedBit);           
+        } else {
+            if (hammingCode.check(currentEncodedBit)){ //True means there's an error
+                encodedString = encodedString + ((correctError = true) ? hammingCode.decode(currentEncodedBit) :hammingCode.pureDecode(currentEncodedBit));         
+                erroneousTransferCount = erroneousTransferCount + 1;
+            } else {
+                encodedString = encodedString +  hammingCode.decode(currentEncodedBit);         
+            }
+        }
+        count = count + noOfBits;
         
-        count = count + 4;
-       
     }
-     console.log(encodedString);
+    console.log('Number of errors found: ' + erroneousTransferCount);
+    return encodedString;
 }
 
 function generate10milBits(){
     let tenMillionBits ='';
-    for (let index = 0; index < 10000000; index++) {
-
-        //tenMillionBits = tenMillionBits +  randomIntInc(0,1);
-        tenMillionBits = tenMillionBits.concat(randomIntInc(0,1));
-        
+    for (let index = 0; index < 1000000; index++) {
+        tenMillionBits = tenMillionBits.concat(Math.round(Math.random()));
     }
     //console.log(tenMillionBits);
     return tenMillionBits;
 }
-function randomIntInc(low, high) {
-    return Math.floor(Math.random() * (high - low + 1) + low)
-}
 
 function hammingStart(){
     var bits = generate10milBits();
-     //console.log(bits);
-    //encodeBits(bits);
-    //encodeBits('001111000110');
-    //console.log(hammingCode.encode(bits));
-    //console.log(hammingCode.decode("11010110110001100"));
+    
+    let encodedString = encodeOrDecode(bits,4,false); //Encode
+    //console.log(encodedString);
 
-var enc = hammingCode.encode(bits);
+    //Simulate Noise
+    let messagePlusNoise = sendMessage(encodedString);
 
-    fs.writeFile('code.txt', enc, function (err) {
-        if (err) throw err;
-        console.log('Saved!');
-      });
+    //decode message with errors
+    let decodedNoisyString = encodeOrDecode(messagePlusNoise,7,true);
+    //console.log(decodedString);
+
+    // //decode message without errors
+    // let decodedString = encodeOrDecode(encodedString,7,false);
+    // //console.log(decodedString);
+
+
+    fs.writeFile('code.txt', encodedString, function (err) {
+            if (err) throw err;
+            console.log('Saved!');
+        });
+}
+ 
+function addNoise(b,p){
+
+    if (p == errorProbability){//flip
+        b = (b == 0) ? 1 : 0;
+    }
+    //console.log(b + 'prob: - >  ' + p)
+    return b;
+}
+
+function sendMessage(message){
+    var messageToSend = '';
+    for (var i = 0; i < message.length; i++) {
+        messageToSend = messageToSend + addNoise((message[i]),Math.random().toFixed(errorDecimalPlaces));
+      }
+    //   console.log(messageToSend);
+   return messageToSend;
 }
 
 
+//sendMessage('0001');
+
 hammingStart(); 
+
+
+// console.log("encode : ", hammingCode.encode("0001"));
+// console.log("Decode : ", hammingCode.decode("0001000"));
+// console.log("pDecode : ", hammingCode.pureDecode("0001000"));
+// console.log("pDecode : ", hammingCode.check("0001001"));
+// encodeOrDecode('0001000',7,true)
